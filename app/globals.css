@@ -24,3 +24,26 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Body map: lift the muscle under the cursor and fade the rest */
+.body-map polygon,
+.body-map path {
+  cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+}
+
+/* While hovering anywhere on a body, fade all muscles a bit... */
+.body-map svg:hover polygon,
+.body-map svg:hover path {
+  opacity: 0.55;
+}
+
+/* ...except the one under the cursor, which lifts up */
+.body-map svg polygon:hover,
+.body-map svg path:hover {
+  opacity: 1;
+  transform: scale(1.08) translateY(-1px);
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.35)) brightness(1.1);
+}
