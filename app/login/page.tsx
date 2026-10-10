@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -37,9 +38,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+    <main className="min-h-screen flex items-center justify-center bg-gray-700 p-4">
       <div className="w-full max-w-sm bg-white text-gray-900 rounded-xl shadow p-6 space-y-4">
-        <h1 className="text-2xl font-bold text-center">Fibr.</h1>
+        <Image src="/fibr-logo-black.png" alt="Fibr Logo" width={128} height={128} className="mx-auto h-32 w-32 object-contain" priority/>
 
         <input
           type="email"
@@ -61,14 +62,14 @@ export default function LoginPage() {
         <button
           onClick={handleSignIn}
           disabled={loading}
-          className="w-full bg-blue-600 text-white rounded-lg p-2 font-semibold disabled:opacity-50"
+          className="w-full bg-sky-700 text-white rounded-lg p-2 font-semibold disabled:opacity-50"
         >
           Log in
         </button>
         <button
           onClick={handleSignUp}
           disabled={loading}
-          className="w-full border border-blue-600 text-blue-600 rounded-lg p-2 font-semibold disabled:opacity-50"
+          className="w-full border border-sky-700 text-sky-700 rounded-lg p-2 font-semibold disabled:opacity-50"
         >
           Sign up
         </button>

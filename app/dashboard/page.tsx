@@ -128,7 +128,11 @@ export default function DashboardPage() {
           <div className="bg-white rounded-xl shadow p-6">
             <h2 className="text-xl font-bold mb-4">Recovery map</h2>
             <BodyMap statuses={statuses} onSelect={setSelected} />
-            <p className="mt-4 text-sm text-center text-gray-600">
+            {/* key changes with the selection, so the <p> remounts and the fade replays */}
+            <p
+              key={selectedStatus?.muscle ?? "empty"}
+              className="mt-4 min-h-[2.5rem] text-sm text-center text-gray-600 animate-[fadeIn_250ms_ease-out]"
+            >
               {selectedStatus
                 ? `${selectedStatus.label}: ${describe(selectedStatus)}`
                 : "Tap a muscle for details."}
