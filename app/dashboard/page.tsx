@@ -117,6 +117,9 @@ export default function DashboardPage() {
             <Link href="/profile" className="border border-blue-600 text-blue-600 rounded-lg px-4 py-2 font-semibold">
               Profile
             </Link>
+            <Link href="/leaderboard" className="border border-blue-600 text-blue-600 rounded-lg px-4 py-2 font-semibold">
+              Leaderboard
+            </Link>
             <button onClick={handleSignOut} className="bg-gray-800 text-white rounded-lg px-4 py-2">
               Sign out
             </button>
