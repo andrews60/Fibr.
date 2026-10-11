@@ -47,6 +47,157 @@ body {
   transform: scale(1.08) translateY(-1px);
   filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.35)) brightness(1.1);
 }
+/* ===== Fibr dashboard theme (matches the Figma tokens) ===== */
+.fibr {
+  --bg-canvas: #1b1b1e;
+  --bg-surface: #252529;
+  --bg-surface-hover: #2f2f33;
+  --bg-raised: #2f2f34;
+  --bg-selected: #36363c;
+  --border-subtle: #3b3b42;
+  --border-strong: #45454d;
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --text-on-accent: #0a0a0b;
+  --accent: #38bdf8;
+  --status-ready: #22c55e;
+  --status-recovering: #eab308;
+  --status-fatigued: #ef4444;
+  --status-warning: #f59e0b;
+  --icon-watermark: #1b1b1e;
+  --icon-watermark-raised: #222225;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.18), 0 8px 24px -8px rgba(0, 0, 0, 0.24);
+  --shadow-card-hover: 0 16px 32px -8px rgba(0, 0, 0, 0.28), 0 8px 24px -6px rgba(56, 189, 248, 0.16);
+
+  min-height: 100vh;
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+}
+
+.fibr-muted { color: var(--text-secondary); }
+.fibr-faint { color: var(--text-tertiary); }
+
+.fibr-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.fibr-heading {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Section cards (rounded) */
+.fibr-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+}
+
+/* The 4 stat cards (square, accent bar, hover lift) */
+.fibr-stat {
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  background: var(--bg-surface);
+  border-top: 3px solid var(--accent);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+.fibr-stat:hover {
+  transform: translateY(-4px);
+  background: var(--bg-surface-hover);
+  box-shadow: var(--shadow-card-hover);
+}
+.fibr-watermark { color: var(--icon-watermark); transition: color 0.18s ease; }
+.fibr-stat:hover .fibr-watermark { color: rgba(56, 189, 248, 0.35); }
+.fibr-watermark-raised { color: var(--icon-watermark-raised); }
+
+/* Inner rows and panels */
+.fibr-row {
+  background: var(--bg-raised);
+  border-radius: var(--radius-md);
+}
+.fibr-panel {
+  background: var(--bg-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+/* Collapsible muscle rows */
+.fibr-muscle {
+  background: var(--bg-raised);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.fibr-muscle:hover { background: var(--bg-selected); }
+.fibr-muscle.is-open {
+  background: var(--bg-selected);
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+/* Pills and chips */
+.fibr-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--bg-raised);
+  font-size: 12px;
+  font-weight: 500;
+}
+.fibr-chip {
+  display: inline-flex;
+  padding: 4px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Primary button */
+.fibr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 24px;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: var(--text-on-accent);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+.fibr-btn:hover { filter: brightness(1.08); }
+.fibr-btn:active { transform: translateY(1px); }
+
+.fibr-avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+}
 
 
 @keyframes fadeIn {

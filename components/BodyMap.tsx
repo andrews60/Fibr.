@@ -21,7 +21,7 @@ type Props = {
 };
 
 export default function BodyMap({ statuses, onSelect }: Props) {
-  // The library colors each muscle by its "frequency", so we use it as our color level
+  // The library colors each muscle by "frequency", so we use it as our color level
   const data = statuses.map((s) => ({
     name: s.label,
     muscles: [s.muscle],
@@ -29,33 +29,20 @@ export default function BodyMap({ statuses, onSelect }: Props) {
   })) as unknown as ModelProps["data"];
 
   return (
-    <div>
-      <div className="body-map flex justify-center gap-6">
-        {(["anterior", "posterior"] as const).map((side) => (
-          <div key={side} className="text-center">
-            <Model
-              type={side as ModelProps["type"]}
-              data={data}
-              highlightedColors={COLORS}
-              onClick={({ muscle }) => onSelect(muscle)}
-              style={{ width: "9rem" }}
-            />
-            <p className="text-sm text-gray-500 mt-1">{side === "anterior" ? "Front" : "Back"}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex justify-center gap-4 mt-4 text-sm">
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-full bg-red-500"></span> Fatigued
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-full bg-yellow-500"></span> Recovering
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-full bg-green-500"></span> Ready
-        </span>
-      </div>
+    <div className="body-map flex justify-center gap-8">
+      {(["anterior", "posterior"] as const).map((side) => (
+        <div key={side} className="flex flex-col items-center gap-2">
+          <Model
+            type={side as ModelProps["type"]}
+            data={data}
+            highlightedColors={COLORS}
+            bodyColor="#3f3f46"
+            onClick={({ muscle }) => onSelect(muscle)}
+            style={{ width: "9.5rem" }}
+          />
+          <span className="fibr-label">{side === "anterior" ? "Front" : "Back"}</span>
+        </div>
+      ))}
     </div>
   );
 }
