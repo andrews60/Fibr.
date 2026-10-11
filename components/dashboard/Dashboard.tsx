@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import BodyMap from "@/components/BodyMap";
+import BodyModel3D from "@/components/BodyModel3D";
 import AppNav from "@/components/AppNav";
 import {
   computeRecovery,
@@ -423,7 +424,7 @@ export default function Dashboard() {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-1">
                 <h2 className="fibr-heading">Recovery map</h2>
-                <p className="fibr-muted text-[13px]">Hover or tap a muscle to inspect it</p>
+                <p className="fibr-muted text-[13px]">Drag to spin · tap a muscle to inspect it</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {[
@@ -440,7 +441,12 @@ export default function Dashboard() {
             </div>
 
             <div className="flex flex-col items-center justify-center gap-8 md:flex-row">
-              <BodyMap statuses={statuses} onSelect={(m) => byMuscle[m] && setSelected(m)} />
+              <BodyModel3D
+                statuses={statuses}
+                selected={selected}
+                onSelect={(m) => byMuscle[m] && setSelected(m)}
+                fallback={<BodyMap statuses={statuses} onSelect={(m) => byMuscle[m] && setSelected(m)} />}
+              />
 
               {sel && (
                 <div className="fibr-panel w-full space-y-4 p-4 md:w-60">
