@@ -1,12 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
-import { FRIENDS_CHANGED, TOAST_EVENT, showToast, type ToastInput, type ToastType } from "@/lib/toast";
+import {
+  FRIENDS_CHANGED,
+  REQUESTS_CHANGED,
+  TOAST_EVENT,
+  showToast,
+  type ToastInput,
+  type ToastType,
+} from "@/lib/toast";
 
 type Toast = ToastInput & { id: number; leaving?: boolean };
-
-const DURATION_MS = 4500;
 
 const ICONS: Record<ToastType, ReactNode> = {
   sent: (
@@ -23,6 +29,13 @@ const ICONS: Record<ToastType, ReactNode> = {
       <path d="m16 11 2 2 4-4" />
     </>
   ),
+  received: (
+    <>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M19 8v6M22 11h-6" />
+    </>
+  ),
   info: (
     <>
       <circle cx="12" cy="12" r="10" />
@@ -30,6 +43,9 @@ const ICONS: Record<ToastType, ReactNode> = {
     </>
   ),
 };
+
+// Requests stay up a little longer, since they have a button
+const durationFor = (t: Toast) => (t.action ? 7000 : 4500);
 
 function Svg({ children, size = 16 }: { children: ReactNode; size?: number }) {
   return (
@@ -54,22 +70,51 @@ export default function Toaster() {
     return () => window.removeEventListener(TOAST_EVENT, onToast);
   }, []);
 
-  // 2. Watch for MY friend requests being accepted by someone else
+  // 2. Watch friend activity: requests sent TO me, and MY requests being accepted
   useEffect(() => {
     let cancelled = false;
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    async function announce(addresseeIds: string[]) {
-      const { data } = await supabase.from("profiles").select("id, username").in("id", addresseeIds);
-      for (const id of addresseeIds) {
-        const name = data?.find((p) => p.id === id)?.username ?? "Your friend";
+    async function usernames(ids: string[]) {
+      const { data } = await supabase.from("profiles").select("id, username").in("id", ids);
+      return ids.map((id) => data?.find((p) => p.id === id)?.username ?? "Someone");
+    }
+
+    function changed() {
+      window.dispatchEvent(new Event(FRIENDS_CHANGED));
+      window.dispatchEvent(new Event(REQUESTS_CHANGED));
+    }
+
+    async function announceRequests(requesterIds: string[]) {
+      const names = await usernames(requesterIds);
+      showToast(
+        names.length === 1
+          ? {
+              type: "received",
+              title: "New friend request",
+              body: `${names[0]} wants to compare stats.`,
+              action: { label: "Review request", href: "/leaderboard" },
+            }
+          : {
+              type: "received",
+              title: `${names.length} new friend requests`,
+              body: `From ${names.join(", ")}.`,
+              action: { label: "Review requests", href: "/leaderboard" },
+            }
+      );
+      changed();
+    }
+
+    async function announceAccepted(addresseeIds: string[]) {
+      const names = await usernames(addresseeIds);
+      for (const name of names) {
         showToast({
           type: "was-accepted",
           title: "Your friend request has been accepted",
           body: `${name} accepted. They're on your leaderboard now.`,
         });
       }
-      window.dispatchEvent(new Event(FRIENDS_CHANGED));
+      changed();
     }
 
     async function watch() {
@@ -77,8 +122,8 @@ export default function Toaster() {
       const uid = data.user?.id;
       if (!uid || cancelled) return;
 
-      const key = `fibr:seen-accepted:${uid}`;
-      const readSeen = (): string[] | null => {
+      const KEYS = { accepted: `fibr:seen-accepted:${uid}`, requests: `fibr:seen-requests:${uid}` };
+      const read = (key: string): string[] | null => {
         try {
           const raw = localStorage.getItem(key);
           return raw ? (JSON.parse(raw) as string[]) : null;
@@ -86,46 +131,59 @@ export default function Toaster() {
           return null;
         }
       };
-      const writeSeen = (ids: string[]) => {
+      const write = (key: string, ids: string[]) => {
         try {
           localStorage.setItem(key, JSON.stringify(ids));
         } catch {
-          // storage unavailable: worst case the toast shows again later
+          // storage unavailable: worst case a toast repeats later
         }
       };
-
-      // Catch up on anything accepted while you were away
-      const { data: accepted } = await supabase
-        .from("friendships")
-        .select("id, addressee_id")
-        .eq("requester_id", uid)
-        .eq("status", "accepted");
-      const list = accepted ?? [];
-      const seen = readSeen();
-      if (seen === null) {
-        writeSeen(list.map((f) => f.id)); // first visit on this browser: don't announce old ones
-      } else {
-        const fresh = list.filter((f) => !seen.includes(f.id));
-        if (fresh.length) {
-          writeSeen([...seen, ...fresh.map((f) => f.id)]);
-          await announce(fresh.map((f) => f.addressee_id));
+      // Returns the items we haven't announced yet (first visit on this browser: none)
+      const catchUp = <T extends { id: string }>(key: string, list: T[]): T[] => {
+        const seen = read(key);
+        if (seen === null) {
+          write(key, list.map((f) => f.id));
+          return [];
         }
-      }
+        const fresh = list.filter((f) => !seen.includes(f.id));
+        if (fresh.length) write(key, [...seen, ...fresh.map((f) => f.id)]);
+        return fresh;
+      };
+      const markSeen = (key: string, id: string) => {
+        const seen = read(key) ?? [];
+        if (seen.includes(id)) return false;
+        write(key, [...seen, id]);
+        return true;
+      };
+
+      // Catch up on anything that happened while you were away
+      const [{ data: accepted }, { data: incoming }] = await Promise.all([
+        supabase.from("friendships").select("id, addressee_id").eq("requester_id", uid).eq("status", "accepted"),
+        supabase.from("friendships").select("id, requester_id").eq("addressee_id", uid).eq("status", "pending"),
+      ]);
+      const freshAccepted = catchUp(KEYS.accepted, accepted ?? []);
+      const freshIncoming = catchUp(KEYS.requests, incoming ?? []);
+      if (freshIncoming.length) await announceRequests(freshIncoming.map((f) => f.requester_id));
+      if (freshAccepted.length) await announceAccepted(freshAccepted.map((f) => f.addressee_id));
       if (cancelled) return;
 
-      // And listen live while the app is open
+      // Then listen live while the app is open
       channel = supabase
-        .channel(`friend-accepts-${uid}`)
+        .channel(`friend-activity-${uid}`)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "friendships", filter: `addressee_id=eq.${uid}` },
+          async (payload) => {
+            const row = payload.new as { id: string; requester_id: string; status: string };
+            if (row.status === "pending" && markSeen(KEYS.requests, row.id)) await announceRequests([row.requester_id]);
+          }
+        )
         .on(
           "postgres_changes",
           { event: "UPDATE", schema: "public", table: "friendships", filter: `requester_id=eq.${uid}` },
           async (payload) => {
             const row = payload.new as { id: string; addressee_id: string; status: string };
-            if (row.status !== "accepted") return;
-            const current = readSeen() ?? [];
-            if (current.includes(row.id)) return;
-            writeSeen([...current, row.id]);
-            await announce([row.addressee_id]);
+            if (row.status === "accepted" && markSeen(KEYS.accepted, row.id)) await announceAccepted([row.addressee_id]);
           }
         )
         .subscribe();
@@ -158,6 +216,11 @@ export default function Toaster() {
           <div className="min-w-0 flex-1 space-y-2">
             <p className="text-sm font-semibold">{t.title}</p>
             {t.body && <p className="fibr-muted text-[13px] leading-relaxed">{t.body}</p>}
+            {t.action && (
+              <Link href={t.action.href} className="fibr-toast-action" onClick={() => dismiss(t.id)}>
+                {t.action.label} →
+              </Link>
+            )}
           </div>
           <button type="button" className="fibr-toast-close" aria-label="Dismiss" onClick={() => dismiss(t.id)}>
             <Svg>
@@ -167,7 +230,7 @@ export default function Toaster() {
           {!t.leaving && (
             <span
               className="fibr-toast-timer"
-              style={{ animationDuration: `${DURATION_MS}ms` }}
+              style={{ animationDuration: `${durationFor(t)}ms` }}
               onAnimationEnd={(e) => {
                 e.stopPropagation();
                 dismiss(t.id);

@@ -80,6 +80,7 @@ export default function Leaderboard() {
       const { data: ps } = await supabase.from("profiles").select("id, username").in("id", otherIds);
       setNames(Object.fromEntries((ps ?? []).map((p) => [p.id, p.username ?? "unknown"])));
     }
+    window.dispatchEvent(new Event("fibr:requests-changed"));
     setLoaded(true);
   }
 

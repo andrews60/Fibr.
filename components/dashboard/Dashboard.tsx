@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import BodyMap from "@/components/BodyMap";
+import AppNav from "@/components/AppNav";
 import {
   computeRecovery,
   pickNext,
@@ -363,49 +364,7 @@ export default function Dashboard() {
 
   return (
     <main className="fibr">
-      {/* Header / Navigation */}
-      <header
-        className="flex items-center justify-between gap-4 border-b px-4 py-4 md:px-12"
-        style={{ borderColor: "var(--border-subtle)" }}
-      >
-        <Link href="/dashboard" className="text-[26px] font-bold tracking-tight">
-          fibr<span style={{ color: "var(--accent)" }}>.</span>
-        </Link>
-
-        <nav className="hidden items-center gap-2 md:flex">
-          {[
-            ["Dashboard", "/dashboard"],
-            ["Log workout", "/log"],
-            ["Leaderboard", "/leaderboard"],
-            ["Profile", "/profile"],
-          ].map(([label, href]) => {
-            const active = href === "/dashboard";
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={`border-b-2 px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] transition-colors ${
-                  active ? "" : "border-transparent hover:text-[var(--text-primary)]"
-                }`}
-                style={
-                  active
-                    ? { borderColor: "var(--accent)", color: "var(--text-primary)" }
-                    : { color: "var(--text-secondary)" }
-                }
-              >
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="flex items-center gap-4">
-          <button onClick={handleSignOut} className="fibr-muted text-sm font-medium hover:text-[var(--text-primary)]">
-            Sign out
-          </button>
-          <div className="fibr-avatar">{username.charAt(0).toUpperCase()}</div>
-        </div>
-      </header>
+      <AppNav active="/dashboard" username={username} />
 
       <div className="mx-auto max-w-[1440px] space-y-6 px-4 py-8 md:px-12 md:py-12">
         {/* Greeting */}
